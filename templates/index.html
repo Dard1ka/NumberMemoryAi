@@ -1,0 +1,1670 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Number Memory AI Judge</title>
+    <style>
+      body {
+        font-family: "Courier New", monospace;
+        background: #1a1a1a;
+        color: #fff;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+
+        min-height: 100vh;
+        height: auto;
+        margin: 0;
+        padding: 18px 12px 28px;
+        overflow-y: auto;
+      }
+
+      .game {
+        text-align: center;
+        max-width: 780px;
+        width: 100%;
+        padding: 18px;
+      }
+      h1 {
+        color: #4ade80;
+        margin-bottom: 8px;
+      }
+      .muted {
+        color: #9ca3af;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        margin: 6px 0 12px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #202020;
+        border: 1px solid #2b2b2b;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        color: #d4d4d4;
+        white-space: nowrap;
+      }
+      .pill b {
+        color: #fff;
+      }
+
+      .number {
+        font-size: 3rem;
+        margin: 14px 0 8px;
+        color: #facc15;
+        min-height: 56px;
+      }
+      .status {
+        margin: 8px 0;
+        color: #aaa;
+        min-height: 22px;
+      }
+      .hint {
+        margin: 8px 0 14px;
+        color: #9ca3af;
+        font-size: 0.95rem;
+        line-height: 1.35rem;
+      }
+
+      /* cards menu */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .card {
+        grid-column: span 6;
+        background: #171717;
+        border: 1px solid #2b2b2b;
+        border-radius: 14px;
+        padding: 12px;
+        text-align: left;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 1.05rem;
+        color: #e5e7eb;
+      }
+      .card p {
+        margin: 0;
+        font-size: 0.88rem;
+        color: #9ca3af;
+        line-height: 1.25rem;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+      }
+      .stars {
+        font-size: 1rem;
+        letter-spacing: 1px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #202020;
+        border: 1px solid #2b2b2b;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        color: #d4d4d4;
+      }
+
+      /* Buttons */
+      button {
+        padding: 12px 18px;
+        font-size: 1rem;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        margin: 6px;
+      }
+      .primary {
+        background: #4ade80;
+      }
+      .dangerBtn {
+        background: #f87171;
+      }
+      .infoBtn {
+        background: #60a5fa;
+      }
+      .ghost {
+        background: transparent;
+        border: 1px solid #2b2b2b;
+        color: #e5e7eb;
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      /* timing UI */
+      .timingWrap {
+        background: #171717;
+        border: 1px solid #2b2b2b;
+        border-radius: 12px;
+        padding: 12px;
+        margin: 10px 0 14px;
+        text-align: left;
+        display: none;
+      }
+      .timingTop {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .timeline {
+        height: 10px;
+        background: #222;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid #2b2b2b;
+        margin-bottom: 10px;
+      }
+      .timelineFill {
+        height: 100%;
+        width: 0%;
+        background: #60a5fa;
+      }
+      .slots {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 6px;
+      }
+      .slot {
+        grid-column: span 4;
+        background: #1f1f1f;
+        border: 1px solid #2b2b2b;
+        border-radius: 10px;
+        padding: 8px;
+        min-height: 44px;
+      }
+      .slot.active {
+        border-color: #4ade80;
+        box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35) inset;
+      }
+      .slot.done {
+        border-color: #60a5fa;
+        opacity: 0.9;
+      }
+      .slotTitle {
+        font-size: 0.85rem;
+        color: #d4d4d4;
+        margin-bottom: 2px;
+      }
+      .slotSub {
+        font-size: 0.8rem;
+        color: #9ca3af;
+      }
+
+      /* log */
+      .log {
+        margin-top: 12px;
+        font-size: 0.9rem;
+        background: #222;
+        padding: 10px;
+        border-radius: 10px;
+        height: 150px;
+        overflow-y: auto;
+        text-align: left;
+        color: #b0b0b0;
+      }
+      .danger {
+        color: #fca5a5;
+      }
+      .ok {
+        color: #86efac;
+      }
+
+      /* modal */
+      .modalOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        z-index: 999;
+      }
+      .modal {
+        width: 100%;
+        max-width: 620px;
+        background: #151515;
+        border: 1px solid #2b2b2b;
+        border-radius: 16px;
+        padding: 14px;
+        text-align: left;
+      }
+      .modal h2 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+        color: #e5e7eb;
+      }
+      .modal p {
+        margin: 0 0 12px;
+        color: #9ca3af;
+        line-height: 1.35rem;
+      }
+      .modalRow {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .input {
+        width: 100%;
+        background: #0f0f0f;
+        border: 1px solid #2b2b2b;
+        color: #e5e7eb;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 1rem;
+        outline: none;
+      }
+      .modal .input {
+        max-width: 600px;
+        margin: 0 auto;
+        display: block;
+        margin-bottom: 2%;
+      }
+
+      /* celebration */
+      .celebrate {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid #2b2b2b;
+        background: linear-gradient(180deg, #151515, #101010);
+        text-align: center;
+      }
+      .sparkles {
+        font-size: 1.5rem;
+        animation: pop 1.2s ease-in-out infinite;
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        50% {
+          transform: scale(1.12);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .card {
+          grid-column: span 12;
+        }
+        .topbar {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+
+      .slots.five {
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      .slots.five .slot {
+        flex: 1 1 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="game">
+      <h1>🧠 Number Memory AI</h1>
+
+      <div class="topbar">
+        <div class="pill">👦 Player: <b id="playerName">—</b></div>
+        <div class="pill">✨ EXP: <b id="expTotal">0</b></div>
+        <div class="pill" id="livesPill" style="display: none">
+          ❤️ Lives: <b id="livesText">—</b>
+        </div>
+      </div>
+
+      <div id="status" class="status">Welcome!</div>
+      <div id="number" class="number">🎮</div>
+      <div id="hint" class="hint muted">Enter your name to start.</div>
+
+      <div id="timingWrap" class="timingWrap">
+        <div class="timingTop">
+          <div class="badge">⏳ Total left: <b id="totalLeft">—</b></div>
+          <div class="badge">🎯 Current slot: <b id="slotInfo">—</b></div>
+        </div>
+        <div class="timeline">
+          <div id="timelineFill" class="timelineFill"></div>
+        </div>
+        <div id="slots" class="slots"></div>
+      </div>
+
+      <div id="actions"></div>
+      <div id="runControls"></div>
+
+      <div id="menu" class="grid" style="display: none"></div>
+
+      <div id="log" class="log" style="display: none">System ready…</div>
+    </div>
+
+    <div id="modalOverlay" class="modalOverlay">
+      <div class="modal">
+        <h2 id="modalTitle">Title</h2>
+        <p id="modalText">Text</p>
+        <div id="modalBody"></div>
+        <div class="modalRow" id="modalActions"></div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8000";
+
+      let screenToken = 0;
+      const _timers = new Set();
+      function bumpScreenToken() {
+        screenToken++;
+        return screenToken;
+      }
+      function guardToken(token) {
+        return token === screenToken;
+      }
+      function gSetTimeout(fn, ms, token) {
+        const id = setTimeout(() => {
+          _timers.delete(id);
+          if (!guardToken(token)) return;
+          fn();
+        }, ms);
+        _timers.add(id);
+        return id;
+      }
+      function gSetInterval(fn, ms, token) {
+        const id = setInterval(() => {
+          if (!guardToken(token)) return;
+          fn();
+        }, ms);
+        _timers.add(id);
+        return id;
+      }
+      function stopAllTimers() {
+        for (const id of _timers) {
+          clearTimeout(id);
+          clearInterval(id);
+        }
+        _timers.clear();
+      }
+
+      const GAME = {
+        lessons: {
+          1: {
+            title: "Lesson 1 (1 number)",
+            expPerLevel: 10,
+            livesEnabled: true,
+            levels: [
+              { len: 1, min: 0, max: 10, label: "Level 1: 0 - 10" },
+              { len: 1, min: 11, max: 20, label: "Level 2: 11 - 20" },
+              { len: 1, min: 21, max: 30, label: "Level 3: 21 - 30" },
+              { len: 1, min: 31, max: 40, label: "Level 4: 31 - 40" },
+              { len: 1, min: 41, max: 50, label: "Level 5: 41 - 50" },
+              { len: 1, min: 51, max: 60, label: "Level 6: 51 - 60" },
+              { len: 1, min: 61, max: 70, label: "Level 7: 61 - 70" },
+              { len: 1, min: 71, max: 80, label: "Level 8: 71 - 80" },
+              { len: 1, min: 81, max: 90, label: "Level 9: 81 - 90" },
+              { len: 1, min: 91, max: 100, label: "Level 10: 91 - 100" },
+            ],
+          },
+          2: {
+            title: "Lesson 2 (2 numbers)",
+            expPerLevel: 20,
+            livesEnabled: true,
+            levels: [
+              { len: 2, min: 0, max: 20, label: "Level 1: 0 - 20" },
+              { len: 2, min: 21, max: 40, label: "Level 2: 21 - 40" },
+              { len: 2, min: 41, max: 60, label: "Level 3: 41 - 60" },
+              { len: 2, min: 61, max: 80, label: "Level 4: 61 - 80" },
+              { len: 2, min: 81, max: 100, label: "Level 5: 81 - 100" },
+            ],
+          },
+          3: {
+            title: "Lesson 3 (3 numbers)",
+            expPerLevel: 25,
+            livesEnabled: true,
+            levels: [
+              { len: 3, min: 0, max: 25, label: "Level 1: 0 - 25" },
+              { len: 3, min: 26, max: 50, label: "Level 2: 26 - 50" },
+              { len: 3, min: 51, max: 75, label: "Level 3: 51 - 75" },
+              { len: 3, min: 76, max: 100, label: "Level 4: 76 - 100" },
+            ],
+          },
+        },
+
+        challenge: {
+          part1: {
+            title: "Challenge Part 1 (4 numbers)",
+            expPerLevel: 50,
+            livesEnabled: false,
+            levels: [
+              {
+                len: 4,
+                min: 0,
+                max: 50,
+                label: "Level 1: 0 - 50",
+                uniqueRule: "none",
+              },
+              {
+                len: 4,
+                min: 51,
+                max: 100,
+                label: "Level 2: 51 - 100",
+                uniqueRule: "none",
+              },
+              {
+                len: 4,
+                min: 0,
+                max: 100,
+                label: "Level 3: 0 - 100 (no repeats from lvl1+lvl2)",
+                uniqueRule: "no_repeat_from_part1_lvl12",
+              },
+            ],
+          },
+          part2: {
+            title: "Challenge Part 2 (5 numbers)",
+            expPerLevel: 75,
+            livesEnabled: false,
+            levels: [
+              {
+                len: 5,
+                min: 0,
+                max: 50,
+                label: "Level 1: 0 - 50 (no repeats from Part1)",
+                uniqueRule: "no_repeat_from_part1_all",
+              },
+              {
+                len: 5,
+                min: 51,
+                max: 100,
+                label: "Level 2: 51 - 100 (no repeats from Part1)",
+                uniqueRule: "no_repeat_from_part1_all",
+              },
+              {
+                len: 5,
+                min: 0,
+                max: 100,
+                label:
+                  "Level 3: 0 - 100 (no repeats from Part1 & Part2 lvl1+lvl2)",
+                uniqueRule: "no_repeat_from_part1_and_part2_lvl12",
+              },
+            ],
+          },
+        },
+
+        medals: {
+          bronze: { icon: "🥉", name: "Bronze Medal", exp: 50 },
+          silver: { icon: "🥈", name: "Silver Medal", exp: 100 },
+          gold: { icon: "🥇", name: "Gold Medal", exp: 175 },
+        },
+      };
+
+      const LS_KEY = "nm_game_state_v1";
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch {
+          return null;
+        }
+      }
+      function saveState() {
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+        syncTopUI();
+      }
+
+      let state = loadState() || {
+        playerName: "",
+        exp: 0,
+        stars: { lesson1: 0, lesson2: 0, lesson3: 0 },
+        medals: { bronze: false, silver: false, gold: false },
+        unlocked: {
+          lesson2: false,
+          lesson3: false,
+          challenge1: false,
+          challenge2: false,
+        },
+      };
+
+      const statusEl = document.getElementById("status");
+      const numberEl = document.getElementById("number");
+      const hintEl = document.getElementById("hint");
+      const actionsEl = document.getElementById("actions");
+      const runControlsEl = document.getElementById("runControls");
+      const menuEl = document.getElementById("menu");
+      const logEl = document.getElementById("log");
+
+      const playerNameEl = document.getElementById("playerName");
+      const expTotalEl = document.getElementById("expTotal");
+      const livesPill = document.getElementById("livesPill");
+      const livesText = document.getElementById("livesText");
+
+      const timingWrap = document.getElementById("timingWrap");
+      const totalLeftEl = document.getElementById("totalLeft");
+      const slotInfoEl = document.getElementById("slotInfo");
+      const timelineFillEl = document.getElementById("timelineFill");
+      const slotsEl = document.getElementById("slots");
+
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalText = document.getElementById("modalText");
+      const modalBody = document.getElementById("modalBody");
+      const modalActions = document.getElementById("modalActions");
+
+      function syncTopUI() {
+        playerNameEl.textContent = state.playerName || "—";
+        expTotalEl.textContent = String(state.exp || 0);
+      }
+
+      function log(msg) {
+        logEl.style.display = "block";
+        logEl.innerHTML += `<div>> ${msg}</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function showModal({ title, text, bodyHTML = "", actions = [] }) {
+        modalTitle.textContent = title;
+        modalText.innerHTML = text;
+        modalBody.innerHTML = bodyHTML;
+        modalActions.innerHTML = "";
+
+        for (const a of actions) {
+          const btn = document.createElement("button");
+          btn.textContent = a.label;
+          btn.className = a.className || "ghost";
+          btn.onclick = () => {
+            if (a.onClick) a.onClick();
+            if (!a.keepOpen) hideModal();
+          };
+          modalActions.appendChild(btn);
+        }
+
+        modalOverlay.style.display = "flex";
+      }
+      function hideModal() {
+        modalOverlay.style.display = "none";
+      }
+
+      function starsText(n) {
+        const filled = "⭐".repeat(Math.max(0, Math.min(3, n)));
+        const empty = "☆".repeat(Math.max(0, 3 - Math.min(3, n)));
+        return filled + empty;
+      }
+
+      function ordinalName(i) {
+        const names = [
+          "first",
+          "second",
+          "third",
+          "fourth",
+          "fifth",
+          "sixth",
+          "seventh",
+          "eighth",
+          "ninth",
+          "tenth",
+          "eleventh",
+          "twelfth",
+        ];
+        return names[i] || `${i + 1}th`;
+      }
+
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function pickUniqueNumbers(len, min, max, forbiddenSet) {
+        const forbidden = forbiddenSet || new Set();
+        const pool = [];
+        for (let x = min; x <= max; x++) if (!forbidden.has(x)) pool.push(x);
+
+        if (pool.length < len) {
+          const seq = [];
+          for (let i = 0; i < len; i++) seq.push(randInt(min, max));
+          return seq;
+        }
+
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool.slice(0, len);
+      }
+
+      function weightForNumber(n) {
+        if (n >= 0 && n <= 9) return 1.0;
+        if (n >= 10 && n <= 19) return 1.35;
+        if (n % 10 === 0) return 1.45;
+        return 1.7;
+      }
+
+      function calcRecordSecondsForSeq(seq) {
+        const weights = seq.map(weightForNumber);
+        const totalW = weights.reduce((a, b) => a + b, 0);
+
+        const RECORD_BASE_SEC = 0.45;
+        const RECORD_SCALE_SEC = 0.78;
+        const RECORD_MAX_SEC = 10.0;
+
+        const minPerW = 0.55;
+        const minSec = Math.max(1.2, totalW * minPerW);
+
+        let sec = Math.max(minSec, RECORD_BASE_SEC + totalW * RECORD_SCALE_SEC);
+        sec = Math.min(sec, RECORD_MAX_SEC);
+        return { sec, weights };
+      }
+
+      function buildSlotWindows(weights, totalSec) {
+        const totalMs = Math.round(totalSec * 1000);
+        const wSum = weights.reduce((a, b) => a + b, 0);
+
+        let acc = 0;
+        const windows = [];
+        for (let i = 0; i < weights.length; i++) {
+          const w = weights[i];
+          const start = Math.round((acc / wSum) * totalMs);
+          acc += w;
+          const end =
+            i === weights.length - 1
+              ? totalMs
+              : Math.round((acc / wSum) * totalMs);
+          windows.push({
+            idx: i,
+            startMs: start,
+            endMs: end,
+            durMs: Math.max(1, end - start),
+          });
+        }
+        return { windows, totalMs };
+      }
+
+      function renderSlots(windows) {
+        slotsEl.innerHTML = "";
+        const n = windows.length;
+
+        slotsEl.classList.remove("five");
+
+        let span = 4;
+        if (n === 1) span = 12;
+        else if (n === 2) span = 6;
+        else if (n === 3) span = 4;
+        else if (n === 4) span = 3;
+        else if (n === 5) {
+          slotsEl.classList.add("five");
+          span = null;
+        }
+
+        for (const w of windows) {
+          const div = document.createElement("div");
+          div.className = "slot";
+          if (span) div.style.gridColumn = `span ${span}`;
+          const durSec = (w.durMs / 1000).toFixed(2);
+          div.innerHTML = `
+            <div class="slotTitle">${ordinalName(w.idx)} number</div>
+            <div class="slotSub">window: ${durSec}s</div>
+          `;
+          div.dataset.idx = String(w.idx);
+          slotsEl.appendChild(div);
+        }
+      }
+
+      function findActiveSlot(elapsedMs, windows) {
+        for (const w of windows) {
+          if (elapsedMs >= w.startMs && elapsedMs < w.endMs) return w;
+        }
+        return windows[windows.length - 1];
+      }
+
+      // =========================
+      // Memorize timing
+      // =========================
+      function memorizeDelayMs() {
+        const base = 2000;
+        if (!run) return base;
+
+        if (run.mode === "lesson") {
+          if (run.lessonId === 1) return base + 1000;
+          if (run.lessonId === 2) return base + 2000;
+          if (run.lessonId === 3) return base + 3000;
+          return base;
+        }
+
+        const cfg = run.levels[run.levelIndex];
+        const len = cfg?.len || (run.currentSeq ? run.currentSeq.length : 0);
+        if (len === 4) return base + 2000;
+        if (len === 5) return base + 3000;
+        return base + 3000;
+      }
+      function countdownSecondsForMemorize(totalMs) {
+        return Math.max(3, Math.round(totalMs / 1000));
+      }
+
+      // =========================
+      // Screen + Flow
+      // =========================
+      syncTopUI();
+      boot();
+
+      function clearUIForScreen() {
+        menuEl.style.display = "none";
+        timingWrap.style.display = "none";
+        slotsEl.innerHTML = "";
+        timelineFillEl.style.width = "0%";
+        totalLeftEl.textContent = "—";
+        slotInfoEl.textContent = "—";
+
+        actionsEl.innerHTML = "";
+        runControlsEl.innerHTML = "";
+
+        numberEl.textContent = "";
+        livesPill.style.display = "none";
+      }
+
+      function boot() {
+        if (!state.playerName) showNameScreen();
+        else {
+          enforceUnlocks();
+          showMenu();
+        }
+      }
+
+      function showNameScreen() {
+        bumpScreenToken();
+        stopAllTimers();
+        clearUIForScreen();
+
+        statusEl.textContent = "Welcome! 👋";
+        numberEl.textContent = "🧒🎮";
+        hintEl.innerHTML = `Masukkan nama kamu dulu ya, supaya medal-nya bisa pakai namamu!`;
+
+        actionsEl.innerHTML = `
+          <button class="primary" id="btnSetName">Set Name</button>
+          <button class="ghost" id="btnResetData">Reset Data</button>
+        `;
+
+        document.getElementById("btnSetName").onclick = () => {
+          showModal({
+            title: "Enter Your Name",
+            text: "Nama akan dipakai di medal & ucapan selamat.",
+            bodyHTML: `<input id="nameInput" class="input" placeholder="contoh: Budi" maxlength="20" />`,
+            actions: [
+              { label: "Cancel", className: "ghost" },
+              {
+                label: "Save",
+                className: "primary",
+                onClick: () => {
+                  const inp = document.getElementById("nameInput");
+                  const name = (inp?.value || "").trim();
+                  if (!name) {
+                    showModal({
+                      title: "Oops!",
+                      text: "Namanya jangan kosong ya 😊",
+                      actions: [{ label: "OK", className: "primary" }],
+                    });
+                    return;
+                  }
+                  state.playerName = name;
+                  saveState();
+                  enforceUnlocks();
+                  showMenu();
+                },
+              },
+            ],
+          });
+
+          setTimeout(() => {
+            const el = document.getElementById("nameInput");
+            if (el) el.focus();
+          }, 50);
+        };
+
+        document.getElementById("btnResetData").onclick = () => resetAllData();
+      }
+
+      function resetAllData() {
+        showModal({
+          title: "Reset Data?",
+          text: "Ini akan menghapus nama, EXP, bintang, dan medal.",
+          actions: [
+            { label: "Cancel", className: "ghost" },
+            {
+              label: "Reset",
+              className: "dangerBtn",
+              onClick: () => {
+                localStorage.removeItem(LS_KEY);
+                state = {
+                  playerName: "",
+                  exp: 0,
+                  stars: { lesson1: 0, lesson2: 0, lesson3: 0 },
+                  medals: { bronze: false, silver: false, gold: false },
+                  unlocked: {
+                    lesson2: false,
+                    lesson3: false,
+                    challenge1: false,
+                    challenge2: false,
+                  },
+                };
+                syncTopUI();
+                showNameScreen();
+              },
+            },
+          ],
+        });
+      }
+
+      function enforceUnlocks() {
+        state.unlocked.lesson2 = state.stars.lesson1 >= 3;
+        state.unlocked.lesson3 = state.stars.lesson2 >= 3;
+        state.unlocked.challenge1 = state.medals.bronze === true;
+        state.unlocked.challenge2 = state.medals.silver === true;
+        saveState();
+      }
+
+      function showMenu() {
+        bumpScreenToken();
+        stopAllTimers();
+        clearUIForScreen();
+
+        statusEl.textContent = "Main Menu";
+        hintEl.innerHTML = `Pilih lesson atau challenge. Semangat ya, <b>${state.playerName}</b>!`;
+        numberEl.textContent = "📚🏆";
+        menuEl.style.display = "grid";
+        logEl.style.display = "none";
+
+        const bronze = state.medals.bronze
+          ? `${GAME.medals.bronze.icon} ${GAME.medals.bronze.name}`
+          : "🥉 Bronze (locked)";
+        const silver = state.medals.silver
+          ? `${GAME.medals.silver.icon} ${GAME.medals.silver.name}`
+          : "🥈 Silver (locked)";
+        const gold = state.medals.gold
+          ? `${GAME.medals.gold.icon} ${GAME.medals.gold.name}`
+          : "🥇 Gold (locked)";
+
+        menuEl.innerHTML = `
+          <div class="card">
+            <h3>Lesson 1 — 1 number (10 levels)</h3>
+            <p>Setiap level clear: +10 EXP. Ada 3 lives tiap level (reset saat naik level).</p>
+            <div class="row">
+              <div class="stars">${starsText(state.stars.lesson1)}</div>
+              <button class="primary" id="playL1">Play</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Lesson 2 — 2 numbers (5 levels)</h3>
+            <p>Setiap level clear: +20 EXP. Unlock setelah Lesson 1 selesai.</p>
+            <div class="row">
+              <div class="stars">${starsText(state.stars.lesson2)}</div>
+              <button class="primary" id="playL2" ${state.unlocked.lesson2 ? "" : "disabled"}>${state.unlocked.lesson2 ? "Play" : "Locked"}</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Lesson 3 — 3 numbers (4 levels)</h3>
+            <p>Setiap level clear: +25 EXP. Unlock setelah Lesson 2 selesai.</p>
+            <div class="row">
+              <div class="stars">${starsText(state.stars.lesson3)}</div>
+              <button class="primary" id="playL3" ${state.unlocked.lesson3 ? "" : "disabled"}>${state.unlocked.lesson3 ? "Play" : "Locked"}</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Challenge Part 1 — 4 numbers (3 levels)</h3>
+            <p>Tanpa lives (retry bebas). Setiap level clear: +50 EXP. Ada aturan no-repeat (angka akan dirandom tiap retry atau salah)</p>
+            <div class="row">
+              <div class="badge">${silver}</div>
+              <button class="infoBtn" id="playC1" ${state.unlocked.challenge1 ? "" : "disabled"}>${state.unlocked.challenge1 ? "Play" : "Locked"}</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Challenge Part 2 — 5 numbers (3 levels)</h3>
+            <p>Tanpa lives (retry bebas). Setiap level clear: +75 EXP. Ada aturan no-repeat (angka akan dirandom tiap retry atau salah)</p>
+            <div class="row">
+              <div class="badge">${gold}</div>
+              <button class="infoBtn" id="playC2" ${state.unlocked.challenge2 ? "" : "disabled"}>${state.unlocked.challenge2 ? "Play" : "Locked"}</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Medals</h3>
+            <p>Bronze: setelah Lesson 3 selesai (+50 EXP). Silver: setelah Challenge Part 1 (+100 EXP). Gold: setelah Part 2 (+175 EXP).</p>
+            <div class="row" style="justify-content:flex-start; gap:8px; flex-wrap:wrap;">
+              <div class="badge">${bronze} — <b>${state.playerName}</b></div>
+              <div class="badge">${silver} — <b>${state.playerName}</b></div>
+              <div class="badge">${gold} — <b>${state.playerName}</b></div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById("playL1").onclick = () =>
+          startRun({ mode: "lesson", id: 1 });
+        document.getElementById("playL2").onclick = () =>
+          startRun({ mode: "lesson", id: 2 });
+        document.getElementById("playL3").onclick = () =>
+          startRun({ mode: "lesson", id: 3 });
+        document.getElementById("playC1").onclick = () =>
+          startRun({ mode: "challenge", part: 1 });
+        document.getElementById("playC2").onclick = () =>
+          startRun({ mode: "challenge", part: 2 });
+
+        actionsEl.innerHTML = `
+          <button class="ghost" id="btnChangeName">Change Name</button>
+          <button class="ghost" id="btnResetData">Reset Data</button>
+        `;
+        document.getElementById("btnChangeName").onclick = () =>
+          showNameScreen();
+        document.getElementById("btnResetData").onclick = () => resetAllData();
+      }
+
+      // =========================
+      // Run Engine
+      // =========================
+      let run = null;
+
+      let busy = false;
+      let recorder,
+        stream,
+        chunks = [];
+      let tickTimer = null;
+      let recordStartTs = 0;
+      let recordEndTs = 0;
+      let totalRecordMs = 0;
+      let currentSlotWindows = [];
+
+      let memorizeCountdownTimer = null;
+      let memorizeTimeout = null;
+
+      function stopTick() {
+        if (tickTimer) {
+          clearInterval(tickTimer);
+          _timers.delete(tickTimer);
+          tickTimer = null;
+        }
+      }
+      function startTick(token) {
+        stopTick();
+        tickTimer = gSetInterval(() => updateTimingUI(Date.now()), 60, token);
+      }
+
+      function stopMemorizeCountdown() {
+        if (memorizeCountdownTimer) {
+          clearInterval(memorizeCountdownTimer);
+          _timers.delete(memorizeCountdownTimer);
+          memorizeCountdownTimer = null;
+        }
+        if (memorizeTimeout) {
+          clearTimeout(memorizeTimeout);
+          _timers.delete(memorizeTimeout);
+          memorizeTimeout = null;
+        }
+      }
+
+      function updateTimingUI(nowTs) {
+        const elapsedMs = Math.max(0, nowTs - recordStartTs);
+        const remainingMs = Math.max(0, recordEndTs - nowTs);
+
+        totalLeftEl.textContent = `${(remainingMs / 1000).toFixed(1)}s`;
+
+        const pct = Math.min(
+          100,
+          Math.max(0, (elapsedMs / totalRecordMs) * 100),
+        );
+        timelineFillEl.style.width = `${pct}%`;
+
+        const active = findActiveSlot(elapsedMs, currentSlotWindows);
+        const withinMs = Math.max(0, active.endMs - elapsedMs);
+        slotInfoEl.textContent = `${ordinalName(active.idx)} number • ${(withinMs / 1000).toFixed(1)}s left`;
+
+        const slotDivs = slotsEl.querySelectorAll(".slot");
+        slotDivs.forEach((d) => {
+          const i = Number(d.dataset.idx || "0");
+          d.classList.remove("active", "done");
+          if (i < active.idx) d.classList.add("done");
+          else if (i === active.idx) d.classList.add("active");
+        });
+      }
+
+      function setLivesUI(visible, lives) {
+        if (!visible) {
+          livesPill.style.display = "none";
+          return;
+        }
+        livesPill.style.display = "inline-flex";
+        livesText.textContent =
+          "❤️".repeat(lives) + "🖤".repeat(Math.max(0, 3 - lives));
+      }
+
+      function hardStopMedia() {
+        try {
+          if (recorder && recorder.state !== "inactive") recorder.stop();
+        } catch {}
+        try {
+          if (stream) stream.getTracks().forEach((t) => t.stop());
+        } catch {}
+        recorder = null;
+        stream = null;
+        chunks = [];
+      }
+
+      function exitToMenu() {
+        bumpScreenToken();
+        stopAllTimers();
+        stopTick();
+        stopMemorizeCountdown();
+        hardStopMedia();
+        busy = false;
+
+        timingWrap.style.display = "none";
+        logEl.style.display = "none";
+        logEl.innerHTML = "";
+
+        clearUIForScreen();
+        showMenu();
+      }
+
+      function startRun(opts) {
+        const token = bumpScreenToken();
+        stopAllTimers();
+        stopMemorizeCountdown();
+        stopTick();
+        hardStopMedia();
+
+        clearUIForScreen();
+        logEl.style.display = "block";
+        logEl.innerHTML = "System ready…";
+
+        if (opts.mode === "lesson") {
+          const L = GAME.lessons[opts.id];
+          run = {
+            mode: "lesson",
+            lessonId: opts.id,
+            title: L.title,
+            levels: L.levels,
+            expPerLevel: L.expPerLevel,
+            livesEnabled: true,
+            levelIndex: 0,
+            lives: 3,
+            currentSeq: [],
+          };
+        } else {
+          const part = opts.part;
+          const C = part === 1 ? GAME.challenge.part1 : GAME.challenge.part2;
+          run = {
+            mode: "challenge",
+            part,
+            title: C.title,
+            levels: C.levels,
+            expPerLevel: C.expPerLevel,
+            livesEnabled: false,
+            levelIndex: 0,
+            lives: 0,
+            currentSeq: [],
+            usedPart1All: new Set(),
+            usedPart1Lvl12: new Set(),
+            usedPart2Lvl12: new Set(),
+          };
+        }
+
+        actionsEl.innerHTML = `<button class="ghost" id="btnBackMenu">← Back to Menu</button>`;
+        document.getElementById("btnBackMenu").onclick = () => exitToMenu();
+
+        runControlsEl.innerHTML = "";
+        nextLevel(token);
+      }
+
+      function makeSeqForCurrentLevel() {
+        const cfg = run.levels[run.levelIndex];
+        const forbidden = new Set();
+
+        if (run.mode === "challenge") {
+          if (run.part === 1) {
+            if (cfg.uniqueRule === "no_repeat_from_part1_lvl12")
+              run.usedPart1Lvl12.forEach((x) => forbidden.add(x));
+          } else if (run.part === 2) {
+            if (cfg.uniqueRule === "no_repeat_from_part1_all")
+              run.usedPart1All.forEach((x) => forbidden.add(x));
+            else if (
+              cfg.uniqueRule === "no_repeat_from_part1_and_part2_lvl12"
+            ) {
+              run.usedPart1All.forEach((x) => forbidden.add(x));
+              run.usedPart2Lvl12.forEach((x) => forbidden.add(x));
+            }
+          }
+        }
+
+        return pickUniqueNumbers(cfg.len, cfg.min, cfg.max, forbidden);
+      }
+
+      function registerUsedNumbersOnSuccess(seq) {
+        if (run.mode !== "challenge") return;
+
+        if (run.part === 1) {
+          seq.forEach((x) => run.usedPart1All.add(x));
+          if (run.levelIndex <= 1)
+            seq.forEach((x) => run.usedPart1Lvl12.add(x));
+        } else {
+          seq.forEach((x) => run.usedPart1All.add(x));
+          if (run.levelIndex <= 1)
+            seq.forEach((x) => run.usedPart2Lvl12.add(x));
+        }
+      }
+
+      function nextLevel(token) {
+        if (!guardToken(token)) return;
+
+        busy = false;
+        stopTick();
+        stopMemorizeCountdown();
+        hardStopMedia();
+        timingWrap.style.display = "none";
+
+        if (run.mode === "lesson") {
+          run.lives = 3;
+          setLivesUI(true, run.lives);
+        } else {
+          setLivesUI(false, 0);
+        }
+
+        const cfg = run.levels[run.levelIndex];
+        run.currentSeq = makeSeqForCurrentLevel();
+
+        statusEl.textContent = `${run.title} — ${cfg.label}`;
+        hintEl.innerHTML = `
+          Memorize dulu ya <b>${state.playerName}</b>! Setelah itu tekan <b>Speak</b>.
+          <br/>
+          <span class="muted">Saat Speak, ikuti slot timing (first/second/third...) dan ucapkan angka dalam bahasa Inggris.</span>
+          Tekan retry untuk ulangi dan lihat angkanya
+          `;
+
+        numberEl.textContent = run.currentSeq.join("  ");
+
+        runControlsEl.innerHTML = `
+          <div style="margin-top:10px;">
+            <button class="dangerBtn" id="btnSpeak" style="display:none;" disabled>🎙️ Speak</button>
+            <button class="infoBtn" id="btnRetry" style="display:none;">Retry</button>
+          </div>
+        `;
+
+        const btnSpeak = document.getElementById("btnSpeak");
+        const btnRetry = document.getElementById("btnRetry");
+
+        btnRetry.onclick = () => {
+          if (busy) return;
+          if (run.mode === "challenge") {
+            run.currentSeq = makeSeqForCurrentLevel();
+            numberEl.textContent = run.currentSeq.join("  ");
+          }
+          beginMemorizeCountdownThenEnable(btnSpeak, token);
+        };
+
+        beginMemorizeCountdownThenEnable(btnSpeak, token);
+      }
+
+      function beginMemorizeCountdownThenEnable(btnSpeak, token) {
+        if (!guardToken(token)) return;
+
+        stopMemorizeCountdown();
+
+        btnSpeak.style.display = "none";
+        btnSpeak.disabled = true;
+
+        const btnRetry = document.getElementById("btnRetry");
+        if (btnRetry) btnRetry.style.display = "none";
+
+        numberEl.textContent = run.currentSeq.join("  ");
+
+        const totalMs = memorizeDelayMs();
+        const secs = countdownSecondsForMemorize(totalMs);
+
+        let remaining = secs;
+        statusEl.innerHTML = `<span class="muted">Memorize… <b>${remaining}</b></span>`;
+
+        memorizeCountdownTimer = gSetInterval(
+          () => {
+            remaining--;
+            if (remaining <= 0) {
+              stopMemorizeCountdown();
+              startMemorizeToSpeak(btnSpeak, token);
+              return;
+            }
+            statusEl.innerHTML = `<span class="muted">Memorize… <b>${remaining}</b></span>`;
+          },
+          1000,
+          token,
+        );
+
+        memorizeTimeout = gSetTimeout(
+          () => {
+            stopMemorizeCountdown();
+            startMemorizeToSpeak(btnSpeak, token);
+          },
+          totalMs,
+          token,
+        );
+      }
+
+      function startMemorizeToSpeak(btnSpeak, token) {
+        if (!guardToken(token)) return;
+
+        const cfg = run.levels[run.levelIndex];
+        statusEl.textContent = `${run.title} — ${cfg.label}`;
+        numberEl.textContent = "_";
+
+        btnSpeak.style.display = "inline-block";
+        btnSpeak.disabled = false;
+
+        const btnRetry = document.getElementById("btnRetry");
+        if (btnRetry) btnRetry.style.display = "inline-block";
+
+        btnSpeak.onclick = () => {
+          if (!busy) recordAndJudge(token);
+        };
+      }
+
+      async function recordAndJudge(token) {
+        if (!guardToken(token)) return;
+
+        busy = true;
+        stopMemorizeCountdown();
+
+        const seq = run.currentSeq;
+        const { sec: recordSec, weights } = calcRecordSecondsForSeq(seq);
+        const built = buildSlotWindows(weights, recordSec);
+        currentSlotWindows = built.windows;
+        totalRecordMs = built.totalMs;
+
+        timingWrap.style.display = "block";
+        renderSlots(currentSlotWindows);
+
+        log(
+          `Play: ${run.title} | ${run.levels[run.levelIndex].label} | len=${seq.length} | rec=${recordSec.toFixed(2)}s`,
+        );
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (e) {
+          statusEl.textContent = "Mic permission denied";
+          busy = false;
+          timingWrap.style.display = "none";
+          return;
+        }
+
+        recorder = new MediaRecorder(stream);
+        chunks = [];
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+
+        recorder.onstop = async () => {
+          if (!guardToken(token)) return;
+
+          stopTick();
+          try {
+            stream.getTracks().forEach((t) => t.stop());
+          } catch {}
+          updateTimingUI(recordEndTs);
+
+          statusEl.textContent = "Judging…";
+
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          const fd = new FormData();
+          fd.append("file", blob, "level.webm");
+          fd.append("weights", JSON.stringify(weights));
+          fd.append("expected_len", String(seq.length));
+
+          let data;
+          try {
+            const res = await fetch(`${API_BASE}/judge_level`, {
+              method: "POST",
+              body: fd,
+            });
+            data = await res.json();
+            if (!res.ok) throw new Error(data?.detail || "Server error");
+          } catch (e) {
+            statusEl.textContent = "Server error. Check backend.";
+            log(`ERROR: ${String(e)}`);
+            busy = false;
+            return;
+          }
+
+          const nums = data.nums || [];
+          const segs = data.segments || [];
+          for (let i = 0; i < segs.length; i++)
+            log(`Seg${i + 1}: "${segs[i].clean_text}" → ${nums[i]}`);
+
+          if (
+            nums.length !== seq.length ||
+            nums.some((x) => x === null || x === undefined)
+          ) {
+            onFail(`⚠️ Couldn't detect. Try again slower.`, token);
+            return;
+          }
+
+          const ok = nums.every((v, i) => v === seq[i]);
+          if (!ok) {
+            onFail(`❌ Wrong! You said: ${nums.join(" ")}`, token);
+            return;
+          }
+
+          onSuccess(nums, token);
+        };
+
+        recordStartTs = Date.now();
+        recordEndTs = recordStartTs + totalRecordMs;
+        updateTimingUI(recordStartTs);
+        startTick(token);
+
+        recorder.start();
+
+        gSetTimeout(
+          () => {
+            try {
+              if (recorder && recorder.state !== "inactive") recorder.stop();
+            } catch {}
+          },
+          totalRecordMs,
+          token,
+        );
+      }
+
+      // =========================
+      // FAIL HANDLER (FIX: CHALLENGE KINI JELAS SEPERTI LESSON)
+      // =========================
+      function onFail(message, token) {
+        if (!guardToken(token)) return;
+
+        // stop semua yang bisa nge-override UI
+        stopTick();
+        stopMemorizeCountdown();
+        timingWrap.style.display = "none";
+        hardStopMedia();
+
+        if (run.mode === "lesson") {
+          run.lives--;
+          setLivesUI(true, run.lives);
+
+          if (run.lives <= 0) {
+            busy = false;
+            showModal({
+              title: "💀 Game Over",
+              text: `<span class="danger">${message}</span><br/>Lives kamu habis. Balik ke Main Menu ya!`,
+              actions: [
+                {
+                  label: "Back to Menu",
+                  className: "primary",
+                  onClick: () => showMenu(),
+                },
+              ],
+            });
+            return;
+          }
+
+          // LESSON: pesan salah tetap kelihatan, nggak auto-memorize
+          statusEl.innerHTML = `<span class="danger">${message}</span> Lives left: ${run.lives}`;
+          busy = false;
+          return;
+        }
+
+        // =========================
+        // CHALLENGE FAIL (FIX UTAMA)
+        // =========================
+        // 1) tampilkan pesan salah
+        statusEl.innerHTML = `<span class="danger">${message}</span> <span class="muted">Retry allowed ✅</span>`;
+
+        // 2) generate soal baru (challenge memang ganti seq saat fail)
+        run.currentSeq = makeSeqForCurrentLevel();
+        numberEl.textContent = run.currentSeq.join("  ");
+
+        // 3) atur tombol: SPEAK disembunyikan, RETRY terlihat
+        const btnSpeak = document.getElementById("btnSpeak");
+        const btnRetry = document.getElementById("btnRetry");
+        if (btnSpeak) {
+          btnSpeak.style.display = "none";
+          btnSpeak.disabled = true;
+        }
+        if (btnRetry) btnRetry.style.display = "inline-block";
+
+        busy = false;
+
+        // 4) PENTING: delay sebelum mulai countdown,
+        // supaya status "Wrong!" sempat terlihat (tidak ketimpa "Memorize...")
+        if (btnSpeak) {
+          gSetTimeout(
+            () => {
+              if (!guardToken(token)) return;
+              beginMemorizeCountdownThenEnable(btnSpeak, token);
+            },
+            1500,
+            token,
+          );
+        }
+      }
+
+      function onSuccess(nums, token) {
+        if (!guardToken(token)) return;
+
+        state.exp += run.expPerLevel;
+        saveState();
+        registerUsedNumbersOnSuccess(nums);
+
+        statusEl.innerHTML = `<span class="ok">✅ Clear!</span> +${run.expPerLevel} EXP`;
+        numberEl.textContent = nums.join(" ");
+
+        run.levelIndex++;
+
+        gSetTimeout(
+          () => {
+            if (!guardToken(token)) return;
+
+            timingWrap.style.display = "none";
+
+            if (run.levelIndex >= run.levels.length) {
+              finishRun(token);
+              return;
+            }
+            nextLevel(token);
+          },
+          1200,
+          token,
+        );
+      }
+
+      function finishRun(token) {
+        if (!guardToken(token)) return;
+
+        if (run.mode === "lesson") {
+          if (run.lessonId === 1) state.stars.lesson1 = 3;
+          if (run.lessonId === 2) state.stars.lesson2 = 3;
+          if (run.lessonId === 3) state.stars.lesson3 = 3;
+
+          saveState();
+          enforceUnlocks();
+
+          if (run.lessonId === 3 && !state.medals.bronze) {
+            state.medals.bronze = true;
+            state.exp += GAME.medals.bronze.exp;
+            saveState();
+            enforceUnlocks();
+          }
+
+          if (run.lessonId === 1) {
+            showModal({
+              title: "Lesson 1 Complete! ⭐⭐⭐",
+              text: `Hebat <b>${state.playerName}</b>! Kamu sudah menyelesaikan Lesson 1.<br/>EXP sekarang: <b>${state.exp}</b>`,
+              actions: [
+                {
+                  label: "Back to Menu",
+                  className: "ghost",
+                  onClick: () => showMenu(),
+                },
+                {
+                  label: "Go to Lesson 2",
+                  className: "primary",
+                  onClick: () => startRun({ mode: "lesson", id: 2 }),
+                },
+              ],
+            });
+            return;
+          }
+
+          if (run.lessonId === 2) {
+            showModal({
+              title: "Lesson 2 Complete! ⭐⭐⭐",
+              text: `Mantap <b>${state.playerName}</b>! Kamu sudah menyelesaikan Lesson 2.<br/>EXP sekarang: <b>${state.exp}</b>`,
+              actions: [
+                {
+                  label: "Back to Menu",
+                  className: "ghost",
+                  onClick: () => showMenu(),
+                },
+                {
+                  label: "Go to Lesson 3",
+                  className: "primary",
+                  onClick: () => startRun({ mode: "lesson", id: 3 }),
+                },
+              ],
+            });
+            return;
+          }
+
+          if (run.lessonId === 3) {
+            showModal({
+              title: "Lesson 3 Complete! ⭐⭐⭐",
+              text:
+                `Keren banget <b>${state.playerName}</b>! Kamu selesai Lesson 3.<br/>` +
+                `Kamu dapat <b>${GAME.medals.bronze.icon} Bronze Medal</b> (+${GAME.medals.bronze.exp} EXP)!<br/>` +
+                `EXP sekarang: <b>${state.exp}</b><br/><br/>Mau lanjut Challenge untuk Silver & Gold?`,
+              actions: [
+                {
+                  label: "Finish (Menu)",
+                  className: "ghost",
+                  onClick: () => showMenu(),
+                },
+                {
+                  label: "Go Challenge Part 1",
+                  className: "infoBtn",
+                  onClick: () => startRun({ mode: "challenge", part: 1 }),
+                },
+              ],
+            });
+            return;
+          }
+
+          showMenu();
+          return;
+        }
+
+        if (run.mode === "challenge") {
+          if (run.part === 1) {
+            if (!state.medals.silver) {
+              state.medals.silver = true;
+              state.exp += GAME.medals.silver.exp;
+              saveState();
+              enforceUnlocks();
+            }
+
+            showModal({
+              title: "Challenge Part 1 Complete! 🥈",
+              text:
+                `Luar biasa <b>${state.playerName}</b>! Kamu menang Challenge Part 1.<br/>` +
+                `Kamu dapat <b>${GAME.medals.silver.icon} Silver Medal</b> (+${GAME.medals.silver.exp} EXP)!<br/>` +
+                `EXP sekarang: <b>${state.exp}</b><br/><br/>Mau lanjut ke Gold Medal?`,
+              actions: [
+                {
+                  label: "Back to Menu",
+                  className: "ghost",
+                  onClick: () => showMenu(),
+                },
+                {
+                  label: "Go Challenge Part 2",
+                  className: "infoBtn",
+                  onClick: () => startRun({ mode: "challenge", part: 2 }),
+                },
+              ],
+            });
+            return;
+          }
+
+          if (run.part === 2) {
+            if (!state.medals.gold) {
+              state.medals.gold = true;
+              state.exp += GAME.medals.gold.exp;
+              saveState();
+              enforceUnlocks();
+            }
+            showWinScreen();
+            return;
+          }
+        }
+
+        showMenu();
+      }
+
+      function showWinScreen() {
+        bumpScreenToken();
+        stopAllTimers();
+        clearUIForScreen();
+
+        statusEl.textContent = "🎉 YOU WIN! 🎉";
+        hintEl.innerHTML = `Selamat <b>${state.playerName}</b>! Kamu sudah memenangkan game ini!`;
+        numberEl.textContent = `${GAME.medals.gold.icon}  ${state.exp} EXP`;
+
+        actionsEl.innerHTML = `
+          <button class="primary" id="btnMenu">Back to Menu</button>
+          <button class="ghost" id="btnReset">Reset Data</button>
+        `;
+
+        document.getElementById("btnMenu").onclick = () => showMenu();
+        document.getElementById("btnReset").onclick = () => resetAllData();
+
+        const box = document.createElement("div");
+        box.className = "celebrate";
+        box.innerHTML = `
+          <div class="sparkles">✨✨✨</div>
+          <div style="margin-top:8px;font-size:1.05rem;color:#e5e7eb;">
+            ${GAME.medals.gold.icon} <b>Gold Medal Winner:</b> ${state.playerName}
+          </div>
+          <div style="margin-top:8px;color:#9ca3af;line-height:1.35rem;">
+            "Great job! Kamu hebat karena kamu <b>berusaha</b> dan <b>tidak menyerah</b>! 🚀"
+            <br/>
+            Ayo cerita ke teman atau orang tua kamu ya 😄
+          </div>
+        `;
+        document.querySelector(".game").appendChild(box);
+      }
+    </script>
+  </body>
+</html>
