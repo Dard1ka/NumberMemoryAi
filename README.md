@@ -10,6 +10,8 @@ Objectives
 
 Model Files : https://drive.google.com/drive/folders/1jkbjfDwRxcyAHhWbErP5BsDfnzcyD2NU?usp=sharing 
 
+## Demo Video in Indonesian : https://youtube.com/shorts/Lww2MENCgiA?si=LA4yWEaAAxXtHUDv
+
 📂 File Structure
 ```pqsql
 NumberMemoryAi/
